@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">RestaurantCookApp</string>
+    <string name="item_dishes">Блюда</string>
+    <string name="item_stop_list">Стоп-лист</string>
+    <string name="status_queue">Новый</string>
+    <string name="status_cooking">В работе</string>
+    <string name="status_ready">Готов</string>
+    <string name="table_placeholder">Стол №%d</string>
+    <string name="minutes_ago_placeholder">%d мин. назад</string>
+    <string name="title_update_dish_status_confirmation">Обновить статус блюда?</string>
+    <string name="button_confirm">Да</string>
+    <string name="button_cancel">Нет</string>
+</resources>
