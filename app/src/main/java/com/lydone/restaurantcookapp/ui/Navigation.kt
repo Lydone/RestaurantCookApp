@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.lydone.restaurantcookapp.ui.queue.QueueRoute
+import com.lydone.restaurantcookapp.ui.stoplist.StopListRoute
 
 private const val ROUTE_QUEUE = "queue"
 private const val ROUTE_STOP_LIST = "stop_list"
@@ -16,7 +17,7 @@ private const val ROUTE_STOP_LIST = "stop_list"
 fun RestaurantCookNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(navController, ROUTE_QUEUE, modifier) {
         composable(ROUTE_QUEUE) { QueueRoute() }
-        composable(ROUTE_STOP_LIST) { }
+        composable(ROUTE_STOP_LIST) { StopListRoute() }
     }
 }
 

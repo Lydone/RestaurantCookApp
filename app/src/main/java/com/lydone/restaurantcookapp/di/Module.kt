@@ -16,11 +16,10 @@ import retrofit2.Retrofit
 @Module
 @InstallIn(SingletonComponent::class)
 object Module {
-
     @OptIn(ExperimentalSerializationApi::class)
     @Provides
     fun provideApiService(): ApiService = Retrofit.Builder()
-        .baseUrl("http://192.168.3.5:8080/api/cook/")
+        .baseUrl("http://192.168.31.70:8080/api/cook/")
         .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
         .client(
             OkHttpClient.Builder()

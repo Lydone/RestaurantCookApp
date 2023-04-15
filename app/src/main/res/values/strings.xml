@@ -7,7 +7,8 @@
     <string name="status_ready">Готов</string>
     <string name="table_placeholder">Стол №%d</string>
     <string name="minutes_ago_placeholder">%d мин. назад</string>
-    <string name="title_update_dish_status_confirmation">Обновить статус блюда?</string>
+    <string name="title_update_entry_status_confirmation">Обновить статус блюда?</string>
+    <string name="title_add_to_stop_list_confirmation">Добавить блюдо в стоп-лист?</string>
     <string name="button_confirm">Да</string>
     <string name="button_cancel">Нет</string>
 </resources>
