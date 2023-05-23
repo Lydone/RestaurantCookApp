@@ -6,10 +6,15 @@ import com.lydone.restaurantcookapp.data.Entry
 import com.lydone.restaurantcookapp.data.QueueRepository
 import com.lydone.restaurantcookapp.data.StopListRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
 class QueueViewModel @Inject constructor(
@@ -17,18 +22,33 @@ class QueueViewModel @Inject constructor(
     private val stopListRepository: StopListRepository,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(State(emptyList()))
+    private val _state = MutableStateFlow(State(Result.success(emptyList())))
     val state = _state.asStateFlow()
 
+    private var job: Job? = null
+
     init {
-        viewModelScope.launch {
-            _state.value = State(queueRepository.getActiveEntries())
+        updatePeriodicallyUpdateQueueJob()
+    }
+
+    fun updatePeriodicallyUpdateQueueJob() {
+        job?.cancel()
+        job = viewModelScope.launch {
+            while (isActive) {
+                try {
+                    _state.value = State(Result.success(queueRepository.getActiveEntries()))
+                } catch (e: Exception) {
+                    _state.value = State(Result.failure(e))
+                    cancel()
+                }
+                delay(30L.seconds)
+            }
         }
     }
 
     fun updateEntryStatus(id: Int) = viewModelScope.launch {
         queueRepository.updateEntryStatus(id)
-        _state.value = State(queueRepository.getActiveEntries())
+        updatePeriodicallyUpdateQueueJob()
     }
 
     fun addDishToStopList(dish: Int) = viewModelScope.launch {
@@ -36,6 +56,6 @@ class QueueViewModel @Inject constructor(
     }
 
 
-    data class State(val queue: List<Entry>)
+    data class State(val queue: Result<List<Entry>>)
 }
 

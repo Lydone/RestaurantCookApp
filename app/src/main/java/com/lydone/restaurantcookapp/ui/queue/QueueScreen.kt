@@ -5,9 +5,11 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
@@ -33,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.lydone.restaurantcookapp.R
 import com.lydone.restaurantcookapp.data.Dish
 import com.lydone.restaurantcookapp.data.Entry
+import com.lydone.restaurantcookapp.ui.ErrorPlaceholder
 import kotlinx.datetime.Clock
 
 @Composable
@@ -40,9 +43,10 @@ fun QueueRoute(viewModel: QueueViewModel = hiltViewModel()) {
     var updateStatusEntry by remember { mutableStateOf<Entry?>(null) }
     var addToStopListEntry by remember { mutableStateOf<Dish?>(null) }
     Screen(
-        viewModel.state.collectAsState().value,
+        state = viewModel.state.collectAsState().value,
         onEntryClick = { updateStatusEntry = it },
         onEntryLongClick = { addToStopListEntry = it.dish },
+        onRetryClick = viewModel::updatePeriodicallyUpdateQueueJob
     )
     updateStatusEntry?.let {
         Dialog(
@@ -109,63 +113,75 @@ private fun Screen(
     state: QueueViewModel.State,
     onEntryClick: (Entry) -> Unit,
     onEntryLongClick: (Entry) -> Unit,
-) = LazyColumn(
-    contentPadding = PaddingValues(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
-) {
-    items(state.queue) { entry ->
-        Card(
-            Modifier.combinedClickable(
-                onLongClick = { onEntryLongClick(entry) },
-                onClick = { onEntryClick(entry) }
-            ),
-            colors = CardDefaults.cardColors(
-                containerColor = if (entry.status == Entry.Status.QUEUE) {
-                    MaterialTheme.colorScheme.tertiaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                }
-            )
+    onRetryClick: () -> Unit,
+) = if (state.queue.isSuccess) {
+    val entries = state.queue.getOrThrow()
+    if (entries.isEmpty()) {
+        Box(Modifier.fillMaxSize(), Alignment.Center) {
+            Text("Нет блюд", style = MaterialTheme.typography.titleLarge)
+        }
+    } else {
+        LazyColumn(
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        entry.dish.name,
-                        style = MaterialTheme.typography.displayMedium,
+            items(entries) { entry ->
+                Card(
+                    Modifier.combinedClickable(
+                        onLongClick = { onEntryLongClick(entry) },
+                        onClick = { onEntryClick(entry) }
+                    ),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (entry.status == Entry.Status.QUEUE) {
+                            MaterialTheme.colorScheme.tertiaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        }
                     )
-                    if (entry.comment != null) {
-                        Text(
-                            entry.comment,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.displaySmall
-                        )
+                ) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                entry.dish.name,
+                                style = MaterialTheme.typography.displayMedium,
+                            )
+                            if (entry.comment != null) {
+                                Text(
+                                    entry.comment,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.displaySmall
+                                )
+                            }
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                stringResource(R.string.table_placeholder, entry.table),
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Text(
+                                stringResource(
+                                    R.string.minutes_ago_placeholder,
+                                    Clock.System.now().minus(entry.instant).inWholeMinutes
+                                ),
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Text(
+                                stringStatus(entry.status),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
                     }
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        stringResource(R.string.table_placeholder, entry.table),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Text(
-                        stringResource(
-                            R.string.minutes_ago_placeholder,
-                            Clock.System.now().minus(entry.instant).inWholeMinutes
-                        ),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Text(
-                        stringStatus(entry.status),
-                        style = MaterialTheme.typography.titleMedium
-                    )
                 }
             }
         }
     }
+} else {
+    ErrorPlaceholder(onRetryClick)
 }
 
 @Composable

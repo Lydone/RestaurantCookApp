@@ -24,49 +24,59 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lydone.restaurantcookapp.data.Dish
+import com.lydone.restaurantcookapp.ui.ErrorPlaceholder
 
 @Composable
 fun StopListRoute(viewModel: StopListViewModel = hiltViewModel()) {
     Screen(
         state = viewModel.state.collectAsState().value,
-        onCheckedChange = viewModel::changeDishInStopList
+        onCheckedChange = viewModel::changeDishInStopList,
+        viewModel::loadData,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-private fun Screen(state: StopListViewModel.State?, onCheckedChange: (Dish) -> Unit) {
+private fun Screen(
+    state: StopListViewModel.State?,
+    onCheckedChange: (Dish) -> Unit,
+    onRetryClick: () -> Unit,
+) {
     if (state != null) {
-        LazyVerticalGrid(
-            GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(state.dishes, Dish::id) { dish ->
-                OutlinedCard(
-                    onClick = { onCheckedChange(dish) },
-                    Modifier.animateItemPlacement()
-                ) {
-                    Row(
-                        Modifier
-                            .heightIn(min = 150.dp)
-                            .padding(16.dp),
-                        Arrangement.spacedBy(16.dp),
-                        Alignment.CenterVertically,
+        if (state.dishes.isSuccess) {
+            LazyVerticalGrid(
+                GridCells.Fixed(2),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(state.dishes.getOrThrow(), Dish::id) { dish ->
+                    OutlinedCard(
+                        onClick = { onCheckedChange(dish) },
+                        Modifier.animateItemPlacement()
                     ) {
-                        Text(
-                            dish.name,
-                            Modifier.weight(1f),
-                            style = MaterialTheme.typography.displaySmall
-                        )
-                        Checkbox(
-                            checked = dish.inStopList,
-                            onCheckedChange = { onCheckedChange(dish) }
-                        )
+                        Row(
+                            Modifier
+                                .heightIn(min = 150.dp)
+                                .padding(16.dp),
+                            Arrangement.spacedBy(16.dp),
+                            Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                dish.name,
+                                Modifier.weight(1f),
+                                style = MaterialTheme.typography.displaySmall
+                            )
+                            Checkbox(
+                                checked = dish.inStopList,
+                                onCheckedChange = { onCheckedChange(dish) }
+                            )
+                        }
                     }
                 }
             }
+        } else {
+            ErrorPlaceholder(onRetryClick)
         }
     } else {
         Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }

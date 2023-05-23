@@ -11,4 +11,6 @@
     <string name="title_add_to_stop_list_confirmation">Добавить блюдо в стоп-лист?</string>
     <string name="button_confirm">Да</string>
     <string name="button_cancel">Нет</string>
+    <string name="error">Произошла ошибка</string>
+    <string name="repeat">Повторить</string>
 </resources>

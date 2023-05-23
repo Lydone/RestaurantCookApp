@@ -18,6 +18,10 @@ class StopListViewModel @Inject constructor(private val repository: StopListRepo
     val state = _state.asStateFlow()
 
     init {
+        loadData()
+    }
+
+    fun loadData() {
         viewModelScope.launch { loadDishes() }
     }
 
@@ -32,10 +36,15 @@ class StopListViewModel @Inject constructor(private val repository: StopListRepo
 
     private suspend fun loadDishes() {
         _state.value = State(
-            repository.getDishes()
-                .sortedWith(compareByDescending(Dish::inStopList).thenBy(Dish::name))
+            try {
+                Result.success(repository.getDishes()
+                    .sortedWith(compareByDescending(Dish::inStopList).thenBy(Dish::name)))
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+            
         )
     }
 
-    data class State(val dishes: List<Dish>)
+    data class State(val dishes: Result<List<Dish>>)
 }
